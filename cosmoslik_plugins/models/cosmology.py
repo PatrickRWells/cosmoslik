@@ -1,8 +1,8 @@
 from cosmoslik import SlikPlugin, arguments, param_shortcut, SlikFunction
 param = param_shortcut('start','scale')
 
-class cosmology(SlikPlugin):    
-    
+class cosmology(SlikPlugin):
+
 
     def __init__(self,
                  model = '',
@@ -19,7 +19,7 @@ class cosmology(SlikPlugin):
                 #  nrun = 0,
                 #  w = -1,
                  **kwargs):
-        
+
         super().__init__(**arguments(exclude=["model"]))
         model = model.lower()
 
@@ -31,17 +31,17 @@ class cosmology(SlikPlugin):
             self.tau    = param(0.09,    0.01,  min=0)
             self.theta  = param(0.01041, 5e-6)
             self.H0     = None
-        if 'alens' in model: 
+        if 'alens' in model:
             self.Alens  = param(1,       0.1)
-        if 'neff' in model: 
+        if 'neff' in model:
             self.Neff   = param(3,       0.2)
-        if 'yp' in model: 
+        if 'yp' in model:
             self.Yp     = param(0.24,    0.1)
-        if 'mnu' in model: 
+        if 'mnu' in model:
             self.mnu    = param(0,       0.001, range=(0,1))
-        if 'nrun' in model: 
+        if 'nrun' in model:
             self.nrun   = param(0,       0.01)
-        
+
 
 @SlikFunction
 def cosmo_latex(prefix=''):

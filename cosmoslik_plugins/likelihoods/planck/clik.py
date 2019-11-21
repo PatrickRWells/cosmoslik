@@ -6,7 +6,7 @@ __all__ = ['clik']
 
 # keep a cache of loaded clik files since for some, clik dies if you try to
 # reload them. this won't work if you have the same plugin in different folders,
-# but its better than nothing. 
+# but its better than nothing.
 loaded_cliks = dict()
 
 # the order in which clik puts the spectra and returns them in get_lmax()
@@ -26,17 +26,17 @@ class clik(SlikPlugin):
         super().__init__(**arguments())
 
         from clik import clik, clik_lensing
-        
+
         if lensing or "lensing" in clik_file:
             loaded_cliks[clik_file] = self.clik = loaded_cliks[clik_file] if clik_file in loaded_cliks else clik_lensing(clik_file)
             self.lensing = True
             self.clik_specs = ['pp'] + clik_specs
-            
+
         else:
             loaded_cliks[clik_file] = self.clik = loaded_cliks[clik_file] if clik_file in loaded_cliks else clik(clik_file)
             self.lensing = False
             self.clik_specs = clik_specs
-                
+
 
 
     def __call__(self, cmb):

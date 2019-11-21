@@ -42,11 +42,11 @@ class classy(SlikPlugin):
         """
         params = {self.name_mapping.get(k,k):v for k,v in params.items()}
         if 'theta' in params:
-            params['100*theta_s'] = 100*params.pop('theta') 
+            params['100*theta_s'] = 100*params.pop('theta')
         params['lensing'] = 'yes' if params.pop('DoLensing',True) else 'no'
         return params
-        
-        
+
+
     def __call__(self,
                  As=None,
                  DoLensing=True,
@@ -56,7 +56,7 @@ class classy(SlikPlugin):
                  Neff=None,
                  nrun=None,
                  ns=None,
-                 ombh2=None, 
+                 ombh2=None,
                  omch2=None,
                  omk=None,
                  output='tCl, lCl, pCl',
@@ -69,22 +69,26 @@ class classy(SlikPlugin):
                  Yp=None,
                  nowarn=False,
                  **kwargs):
-        
+
         if not nowarn and kwargs:
             print('Warning: passing unknown parameters to CLASS: '+str(kwargs)+' (set nowarn=True to turn off this message.)')
-        
+
         params = dict(self.defaults,**{k:v for k,v in arguments(include_kwargs=False, exclude=["nowarn"]).items() if v is not None})
         self.model.set(self.convert_params(**params))
         self.model.compute()
 
         lmax = params['lmax']
         ell = arange(lmax+1)
-        self.cmb_result = {x:(self.model.lensed_cl(lmax)[x.lower()])*Tcmb**2*1e12*ell*(ell+1)/2/pi
-                           for x in ['TT','TE','EE','BB','PP','TP']}
+        if params['DoLensing'] == True:
+            self.cmb_result = {x:(self.model.lensed_cl(lmax)[x.lower()])*Tcmb**2*1e12*ell*(ell+1)/2/pi
+                                for x in ['TT','TE','EE','BB','PP','TP']}
+        else:
+            self.cmb_result = {x:(self.model.raw_cl(lmax)[x.lower()])*Tcmb**2*1e12*ell*(ell+1)/2/pi
+                                for x in ['TT']}
 
         self.model.struct_cleanup()
         self.model.empty()
-        
+
         return self.cmb_result
 
     def get_bao_observables(self, z):

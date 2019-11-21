@@ -12,9 +12,9 @@ parser.add_argument('--qname',type=str,default='/dev/null',help="qsub job name")
 parser.add_argument('--traceback',action='store_true',default=True,help='print out tracebacks on error messages')
 parser.add_argument('script',metavar="script.py",help='a script to run a chain from')
 parser.add_argument('script_args', nargs=argparse.REMAINDER, metavar="...", help='arguments to pass to script')
-
+parser.add_argument('-r', '--restart', action='store_true',help="restart a previously run chain." )
 def main(args):
-    
+
     args.qsub = args.qsub.split()
     if args.qn:
         args.qsub += ['-l','nodes=%i'%args.qn]
@@ -33,6 +33,14 @@ def main(args):
         )
         print(qsub_command)
         os.system(qsub_command)
+
+    elif args.restart:
+        if args.n>1:
+            print("Critical error: Restarting chains is not yet supported for MPI runs")
+            exit(1)
+        parser, script = load_script(args.script)
+        for _ in Slik(script(**vars(parser.parse_args(args.script_args)))).restart_sample(): pass
+
     elif args.n>1:
         try:
             from mpi4py import MPI
@@ -40,6 +48,8 @@ def main(args):
             raise Exception("Failed to load mpi4py which is needed to run with CosmoSlik '-n'.") from e
         else:
             os.system("mpiexec -n {n} {cmd}".format(n=args.n, cmd=cmd))
+
+
     else:
         parser, script = load_script(args.script)
         for _ in Slik(script(**vars(parser.parse_args(args.script_args)))).sample(): pass
@@ -56,7 +66,7 @@ def escape_string(s):
         print("WARNING: `cosmoslik -n ...` may not work properly because of: \n"+str(e))
         return s
 
-if not sys.argv[1:] or sys.argv[1] in ["-h","--help"]: 
+if not sys.argv[1:] or sys.argv[1] in ["-h","--help"]:
     parser.print_help()
 else:
     args = parser.parse_args()
@@ -64,7 +74,7 @@ else:
         main(args)
     except BaseException as e:
         if isinstance(e,(Exception,KeyboardInterrupt)):
-            if args.traceback: 
+            if args.traceback:
                 traceback.print_exception(type(e), e, sys.exc_info()[2], None, sys.stderr)
             else:
                 sys.stderr.write('\033[91m')
